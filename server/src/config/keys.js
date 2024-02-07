@@ -6,8 +6,8 @@ module.exports = {
   database: {
     url:
     process.env.MONGODB_URI ||
-    `mongodb+srv://spotcapstone:spot@spot.lho6oyr.mongodb.net/?retryWrites=true`,
-  name: process.env.MONGODB_NAME || "capstone",
+    `mongodb+srv://spotcapstone:spot@spot.lho6oyr.mongodb.net/Spot?retryWrites=true`,
+  name: process.env.MONGODB_NAME || "spot",
     // url: process.env.MONGODB_URI,
     // name: process.env.MONGODB_NAME,
   },
