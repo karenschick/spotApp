@@ -12,6 +12,7 @@ import CustomNavbar from "./components/CustomNavbar/CustomNavbar";
 import ParkLocator from "./components/ParkLocator/ParkLocator";
 import { ParkProvider } from "./components/ParkLocator/ParkLocatorContext";
 import { PostsProvider } from "./components/PostCard/PostsContext";
+import EditAddPage from "./pages/EditAddPage/EditAddPage";
 
 function App() {
   const {
@@ -33,6 +34,7 @@ function App() {
               <Route path="/profile/u/:uname" element={<ProfilePage />} />
               <Route path="/parks" element={<ParkLocator />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/profile/u/:uname/edit" element={<EditAddPage />} />
               //! Add other Routes here
             </Routes>
           </PostsProvider>

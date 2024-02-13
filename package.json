@@ -21,6 +21,7 @@
     "esbuild": "^0.19.11"
   },
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "react-toastify": "^10.0.4"
   }
 }
