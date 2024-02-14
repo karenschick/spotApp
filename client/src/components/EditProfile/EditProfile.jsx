@@ -545,7 +545,7 @@ const EditProfile = (props) => {
         </Container>
         <div className="text-center m-3">
           <Button
-            variant="info"
+            variant="secondary"
             style={{ border: "none", color: "white" }}
             onClick={handleSubmitAll}
           >

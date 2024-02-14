@@ -63,9 +63,9 @@ const EditAddPage = () => {
   return (
     <>
       <Button
-        variant="outline-info"
+        variant="primary"
         onClick={() => {
-          navigate(`/u/${user.username}`);
+          navigate(`/profile/u/${user.username}`);
         }}
         style={{ border: "none", color: "black" }}
         className="mt-3 mb-3"
