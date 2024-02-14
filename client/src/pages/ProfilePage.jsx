@@ -52,77 +52,50 @@ export default function ProfilePage(props) {
 
   return (
     <>
-      {/* <Header /> */}
-      <Container className="mt-3" style={{ width: "60%" }}>
-        <Card bg="header" className="text-center">
-          <Card.Body>
-            <Row className="justify-content-center align-items-center mt-3">
-              <Col xs={12} sm={4} md={3} lg={2}>
-                <Figure
-                  className="bg-border-color overflow-hidden my-auto ml-2 p-1"
-                  style={{ height: "100px", width: "100px" }}
-                >
-                  <Figure.Image
-                    src={user && user.profile_image}
-                    style={{
-                      borderRadius: "0%",
-                      height: "100%",
-                      width: "auto",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Figure>
-              </Col>
-              <Col xs="auto">
-                <Card.Text className="mb-3">{user && user.username}</Card.Text>
-                <Card.Text className="mb-3">{user && user.email}</Card.Text>
-                <Card.Text className="mb-3">{user && user.zipcode}</Card.Text>
-              </Col>
-            </Row>
-            <Row className="justify-content-center align-items-center mt-3">
-              <Col xs={12} sm={4} md={3} lg={2}>
-                <Figure
-                  className="bg-border-color overflow-hidden my-auto ml-2 p-1"
-                  style={{ height: "100px", width: "100px" }}
-                >
-                  <Figure.Image
-                  
-                    src={user && user.dog.images && user.dog.images[0]}
-                    style={{
-                      borderRadius: "0%",
-                      height: "100%",
-                      width: "auto",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Figure>
-              </Col>
-              <Col xs="auto">
-                <Card.Text className="mb-3">{user && user.dog.name}</Card.Text>
-                <Card.Text className="mb-3">{user && user.dog.breed}</Card.Text>
-                <Card.Text className="mb-3">{user && user.dog.size}</Card.Text>
-              </Col>
-            </Row>
-          </Card.Body>
-
-          {state.user && state.user.username === params.uname && (
-            <div className="mb-3">
-              {" "}
-              <Button
-                variant="primary"
-                className="d-inline-block"
-                style={{
-                  border: "none",
-                  color: "white",
-                  display: "inline-block",
-                }}
-                onClick={() => navigate(`/profile/u/${params.uname}/edit`)}
-              >
-                Edit Profile
-              </Button>
-            </div>
-          )}
-        </Card>
+      <Container className="mt-3 " style={{ width: "30%" }}>
+                   
+            {user && (
+              <Card bg="header" className="text-center">
+                <Card.Body>
+                  <Row><Col>
+                  <Figure className="bg-border-color overflow-hidden my-auto ml-2 p-1" style={{ height: "100px", width: "100px" }}>
+                    <Figure.Image src={user.profile_image} style={{ borderRadius: "0%", height: "100%", width: "auto", objectFit: "cover" }} />
+                  </Figure></Col>
+                  <Col>
+                  <Card.Text className="mb-3">{user.username}</Card.Text>
+                  <Card.Text className="mb-3">{user.email}</Card.Text>
+                  <Card.Text className="mb-3">{user.zipcode}</Card.Text>
+                  </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            )}
+          
+            {user && (
+              <Card className="mt-3" style={{ width: "50%" }}>
+                <Card.Body>
+                  <Figure className="bg-border-color overflow-hidden my-auto  p-1" style={{ height: "100px", width: "100px" }}>
+                    <Figure.Image src={user.dog.images && user.dog.images[0]} style={{ borderRadius: "0%", height: "100%", width: "auto", objectFit: "cover" }} />
+                  </Figure>
+                  <Card.Text className="mb-3">{user.dog.name}</Card.Text>
+                  <Card.Text className="mb-3">{user.dog.breed}</Card.Text>
+                  <Card.Text className="mb-3">{user.dog.size}</Card.Text>
+                </Card.Body>
+              </Card>
+            )}
+          
+        {state.user && state.user.username === params.uname && (
+          <div className="mt-3">
+            <Button
+              variant="primary"
+              className="d-inline-block"
+              style={{ border: "none", color: "white", display: "inline-block" }}
+              onClick={() => navigate(`/profile/u/${params.uname}/edit`)}
+            >
+              Edit Profile
+            </Button>
+          </div>
+        )}
       </Container>
     </>
   );

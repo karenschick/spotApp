@@ -21,13 +21,14 @@ import api from "../../../utils/api.utils";
 import { useNavigate, useParams } from "react-router-dom";
 //import api from "../../util/api";
 import { toast } from "react-toastify";
+import AvatarPicker from "../AvatarPicker/AvatarPicker";
 
 const EditProfile = (props) => {
   const { state } = useProvideAuth();
 
   const [user, setUser] = useState();
   //const [loading, setLoading] = useState(true);
-
+  const [uploadImageType, setUploadImageType] = useState("")
   const [showModal, setShowModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({
@@ -45,6 +46,8 @@ const EditProfile = (props) => {
     dogPhotoChanged: false,
     //city: "",
     //state: "",
+    profile_image: "",
+    profile_image_changed: false,
     isSubmitting: false,
     errorMessage: null,
   });
@@ -72,6 +75,7 @@ const EditProfile = (props) => {
         dogBreed: user.dog.breed,
         dogSize: user.dog.size,
         dogImages: user.dog.images || [],
+        profile_image: user.profile_image,
       }));
     }
   }, [user]);
@@ -340,7 +344,8 @@ const EditProfile = (props) => {
   //   return <LoadingSpinner full />;
   // }
 
-  const handleShowUploadModal = () => {
+  const handleShowUploadModal = (imageType) => {
+    setUploadImageType(imageType); // Set the image type when showing the upload modal
     setShowUploadModal(true);
   };
 
@@ -351,20 +356,28 @@ const EditProfile = (props) => {
   const handleUpload = async (path) => {
     try {
       const updatedUserData = { ...user };
-      updatedUserData.dog.images = [path]; // Replace the existing images array with a new array containing only the new image URL
-    
-      await api.put(`/users/${params.uname}/dog/images`, {
-        imgUrls: updatedUserData.dog.images,
-      });
-      
-      // Update the user state with the new photo URL
-      setUser(updatedUserData);
-      
-      // Update the data state with the new photo URL
+  
+      if (uploadImageType === "profile") {
+        updatedUserData.profile_image = path; // Update profile image if type is "profile"
+        await api.put(`/users/${params.uname}/avatar`, {
+          profile_image: path,
+        });
+      } else if (uploadImageType === "dog") {
+        updatedUserData.dog.images = [path]; // Update dog photo if type is "dog"
+        await api.put(`/users/${params.uname}/dog/images`, {
+          imgUrls: updatedUserData.dog.images,
+        });
+      }
+  
+      setUser(updatedUserData); // Update user state with the new photo URL
+  
+      // Update data state based on image type
       setData({
         ...data,
-        dogPhoto: path,
-        dogPhotoChanged: true,
+        profile_image: uploadImageType === "profile" ? path : data.profile_image,
+        dogPhoto: uploadImageType === "dog" ? path : data.dogPhoto,
+        profile_image_changed: uploadImageType === "profile",
+        dogPhotoChanged: uploadImageType === "dog",
       });
   
       handleCloseUploadModal();
@@ -372,196 +385,259 @@ const EditProfile = (props) => {
       console.error("Upload failed:", err);
     }
   };
-  
-  
 
+  const handleProfileUpload = async (path) => {
+    try {
+      const updatedUserData = { ...user };
+      updatedUserData.profile_image = path; // Update the profile image URL directly
+
+      await api.put(`/users/${params.uname}/avatar`, {
+        // Call the correct API endpoint for updating the profile image
+        profile_image: path, // Send the profile image URL in the request body
+      });
+
+      setUser(updatedUserData); // Update the user state with the new photo URL
+
+      setData({
+        ...data,
+        profile_image: path,
+        profile_image_changed: true,
+      });
+
+      handleCloseUploadModal();
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  };
+
+  const handleAvatarSelection = (avatar) => {
+    console.log("Selected Avatar:", avatar);
+    setData({
+      ...data,
+      profile_image: avatar,
+    });
+    setShowAvatarOptions(false);
+  };
+
+  const handleBackToAvatarOptions = () => {
+    setShowAvatarOptions(true);
+  };
+  const [showAvatarOptions, setShowAvatarOptions] = useState(true);
+  //const [showUploadModal, setShowUploadModal] = useState(false);
   return (
     <>
-      <Container fluid className="p-3" style={{ maxWidth: "500px" }}>
-        <div className="text-center mt-2 mb-5">
+      <Container fluid className="p-3" style={{ width: "50%" }}>
+        <div className="text-center">
           <h1>Edit Profile</h1>
         </div>
         <Container animation="false">
-          <Card className="mt-3 p-3">
-            <Form>
-              {/* <Form.Group controlId="firstName">
-                <Form.Label>First Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.firstName}
-                  onChange={(e) =>
-                    setData({
-                      ...data,
-                      firstName: e.target.value,
-                    })
-                  }
-                />
-              </Form.Group> */}
-              {/* Repeat for lastName and city */}
-              {/* <Form.Group controlId="lastName">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.lastName}
-                  onChange={(e) =>
-                    setData({ ...data, lastName: e.target.value })
-                  }
-                />
-              </Form.Group> */}
-              <Form.Group controlId="email">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.email}
-                  onChange={(e) => setData({ ...data, email: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mt-3" controlId="zipcode">
-                <Form.Label>Zip Code</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.zipcode}
-                  onChange={(e) =>
-                    setData({ ...data, zipcode: e.target.value })
-                  }
-                />
-              </Form.Group>
-              {/* <Form.Group controlId="city">
-                <Form.Label>City</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.city}
-                  onChange={(e) => setData({ ...data, city: e.target.value })}
-                />
-              </Form.Group> */}
-              {/* <Form.Group controlId="state">
-                <Form.Label>State</Form.Label>
-                <Form.Select
-                  value={data.state}
-                  onChange={(e) => setData({ ...data, state: e.target.value })}
+          <Row>
+            <Col>
+              <Card className="mt-3 p-3">
+                <Form>
+                  <Form.Group controlId="email">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={data.email}
+                      onChange={(e) =>
+                        setData({ ...data, email: e.target.value })
+                      }
+                    />
+                  </Form.Group>
+                  <Form.Group className="mt-3" controlId="zipcode">
+                    <Form.Label>Zip Code</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={data.zipcode}
+                      onChange={(e) =>
+                        setData({ ...data, zipcode: e.target.value })
+                      }
+                    />
+                  </Form.Group>
+                </Form>
+              </Card>
+              <Card className="mt-3 p-3">
+                <Form
+                  id="passwordForm"
+                  noValidate
+                  validated={validated}
+                  onSubmit={handleUpdatePassword}
                 >
-                  <option value="">Select State</option>
-                  {usStates.map((state, index) => (
-                    <option key={index} value={state}>
-                      {state}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group> */}
-            </Form>
-          </Card>
-          <Card className="mt-3 p-3">
-            <Form
-              id="passwordForm"
-              noValidate
-              validated={validated}
-              onSubmit={handleUpdatePassword}
-            >
-              <Form.Group >
-                <Form.Label htmlFor="password">Current Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="currentPassword"
-                  required
-                  value={data.currentPassword}
-                  onChange={handleInputChange}
-                />
-                <Form.Control.Feedback type="invalid">
-                  Current Password is required
-                </Form.Control.Feedback>
-              </Form.Group>
-              <Form.Group className="mt-2">
-                <Form.Label htmlFor="password">New Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  required
-                  value={data.password}
-                  onChange={handleInputChange}
-                />
-                <Form.Text id="passwordHelpBlock" muted>
-                  Must be 8-20 characters long.
-                </Form.Text>
-                <Form.Control.Feedback type="invalid">
-                  Confirm Password is required
-                </Form.Control.Feedback>
-              </Form.Group>
-              <Form.Group className="mt-2">
-                <Form.Label htmlFor="password">Confirm New Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="confirmPassword"
-                  required
-                  value={data.confirmPassword}
-                  onChange={handleInputChange}
-                />
-                <Form.Text id="passwordHelpBlock" muted></Form.Text>
-                <Form.Control.Feedback type="invalid">
-                  Confirm Password is required
-                </Form.Control.Feedback>
-              </Form.Group>
+                  <Form.Group>
+                    <Form.Label htmlFor="password">Current Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="currentPassword"
+                      required
+                      value={data.currentPassword}
+                      onChange={handleInputChange}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      Current Password is required
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Form.Group className="mt-2">
+                    <Form.Label htmlFor="password">New Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      required
+                      value={data.password}
+                      onChange={handleInputChange}
+                    />
+                    <Form.Text id="passwordHelpBlock" muted>
+                      Must be 8-20 characters long.
+                    </Form.Text>
+                    <Form.Control.Feedback type="invalid">
+                      Confirm Password is required
+                    </Form.Control.Feedback>
+                  </Form.Group>
+                  <Form.Group className="mt-2">
+                    <Form.Label htmlFor="password">
+                      Confirm New Password
+                    </Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="confirmPassword"
+                      required
+                      value={data.confirmPassword}
+                      onChange={handleInputChange}
+                    />
+                    <Form.Text id="passwordHelpBlock" muted></Form.Text>
+                    <Form.Control.Feedback type="invalid">
+                      Confirm Password is required
+                    </Form.Control.Feedback>
+                  </Form.Group>
 
-              {data.errorMessage && (
-                <span className="form-error">{data.errorMessage}</span>
+                  {data.errorMessage && (
+                    <span className="form-error">{data.errorMessage}</span>
+                  )}
+                </Form>
+              </Card>
+            </Col>
+            <Col>
+              {showAvatarOptions ? (
+                <>
+                  {/* Avatar Picker */}
+                  <Form.Group controlId="formAvatar" className="mt-3">
+                    <Form.Label
+                      style={{ fontWeight: "bold" }}
+                      className="d-flex align-items-start"
+                    >
+                      Now one last thing, you can either choose an avatar:
+                    </Form.Label>
+                    <AvatarPicker
+                      selectedAvatar={data.profile_image}
+                      onSelectAvatar={handleAvatarSelection}
+                      disabled={!!data.profile_image}
+                    />
+                  </Form.Group>
+
+                  {/* Upload Button */}
+                  <Form.Group controlId="formImg" className="mt-3">
+                    <Form.Label
+                      style={{ fontWeight: "bold" }}
+                      className="d-flex align-items-start"
+                    >
+                      Or you can upload your own images here:
+                    </Form.Label>
+                    <Button
+                      style={{ marginBottom: "20px" }}
+                      variant="primary"
+                      onClick={() => handleShowUploadModal("profile")}
+                      className="mt-3"
+                    >
+                      Upload Profile Image
+                    </Button>
+                  </Form.Group>
+
+                  {/* Upload Modal */}
+                  <Modal show={showUploadModal} onHide={handleCloseUploadModal}>
+                    <Modal.Header closeButton>
+                      <Modal.Title>Upload File</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                      <UploadFile
+                        onUpload={handleProfileUpload}
+                        handleClose={handleCloseUploadModal}
+                      />
+                    </Modal.Body>
+                  </Modal>
+                </>
+              ) : (
+                <div className="mt-3">
+                  <p style={{ fontWeight: "bold" }}>
+                    Profile Image Chosen Successfully!
+                  </p>
+                  <img
+                    src={data.profile_image}
+                    alt="Chosen Avatar"
+                    style={{ maxWidth: "100px", maxHeight: "100px" }}
+                  />
+                  <br />
+                  <p style={{ fontWeight: "bold", marginTop: "20px" }}>
+                    Want to choose a different image?
+                  </p>
+
+                  {/* Button to go back to avatar options */}
+                  <Button
+                    style={{ marginBottom: "20px" }}
+                    variant="primary"
+                    onClick={handleBackToAvatarOptions}
+                  >
+                    Edit Profile Image
+                  </Button>
+                </div>
               )}
-            </Form>
-          </Card>
-          {/* <Card className="mt-3">
-            <div className="mt-5 justify-content-center">
-              <Form className="avatarChange" noValidate validated={validated}>
-                <h6 className="mt-1">Select a new Avatar:</h6>
-                <AvatarPicker
-                  setProfileImage={setProfileImage}
-                  profileImage={profileImage}
-                  setAvatarChanged={setAvatarChanged}
-                  selectedAvatar={profileImage} // Pass selectedAvatar prop if needed
-                  onSelectAvatar={(avatar) => setProfileImage(avatar)} // Pass onSelectAvatar function
-                />
-              </Form>
-            </div>
-          </Card> */}
-          <Card className="mt-3 p-3">
-            <Form>
-              <Form.Group controlId="dogName">
-                <Form.Label>Dog's Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.dogName}
-                  onChange={handleDogNameChange}
-                />
-              </Form.Group>
-              <Form.Group className="mt-3"controlId="dogBreed">
-                <Form.Label>Dog's Breed</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={data.dogBreed}
-                  onChange={handleDogBreedChange}
-                />
-              </Form.Group>
-              <Form.Group className="mt-3"controlId="dogSize">
-                <Form.Label>Dog's Size</Form.Label>
-                <Form.Control
-                  as="select"
-                  name="size"
-                  value={data.dogSize}
-                  onChange={handleDogSizeChange}
-                >
-                  <option value="">Select Size</option>
-                  <option value="small">Small (22 lbs or less)</option>
-                  <option value="medium">Medium (23 lbs - 57 lbs)</option>
-                  <option value="large">Large (58 lbs or more)</option>
-                </Form.Control>
-              </Form.Group>
-            </Form>
-            <Form.Label className="mt-3">Dog's Photo</Form.Label>
-            <Row className="justify-content-center">
-      <Col xs="auto">
-        <Button className="m-3" onClick={handleShowUploadModal}>
-          Upload Photo
-        </Button>
-      </Col>
-    </Row>
-          </Card>
+
+              <Card className="mt-3 p-3">
+                <Form>
+                  <Form.Group controlId="dogName">
+                    <Form.Label>Dog's Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={data.dogName}
+                      onChange={handleDogNameChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mt-3" controlId="dogBreed">
+                    <Form.Label>Dog's Breed</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={data.dogBreed}
+                      onChange={handleDogBreedChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mt-3" controlId="dogSize">
+                    <Form.Label>Dog's Size</Form.Label>
+                    <Form.Control
+                      as="select"
+                      name="size"
+                      value={data.dogSize}
+                      onChange={handleDogSizeChange}
+                    >
+                      <option value="">Select Size</option>
+                      <option value="small">Small (22 lbs or less)</option>
+                      <option value="medium">Medium (23 lbs - 57 lbs)</option>
+                      <option value="large">Large (58 lbs or more)</option>
+                    </Form.Control>
+                  </Form.Group>
+                </Form>
+                <Form.Label className="mt-3">Dog's Photo</Form.Label>
+                <Row className="justify-content-center">
+                  <Col xs="auto">
+                    <Button
+                      className="m-3"
+                      onClick={() => handleShowUploadModal("dog")}
+                    >
+                      Upload Dog Photo
+                    </Button>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+          </Row>
         </Container>
         <div className="text-center m-3">
           <Button
@@ -573,10 +649,12 @@ const EditProfile = (props) => {
           </Button>
         </div>
       </Container>
-      
+
       <Modal show={showUploadModal} onHide={handleCloseUploadModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Upload Dog Photo</Modal.Title>
+        <Modal.Title>
+      Upload {uploadImageType === "profile" ? "Profile" : "Dog"} Photo
+    </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <UploadFile
