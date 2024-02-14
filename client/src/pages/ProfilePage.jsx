@@ -16,7 +16,6 @@ export default function ProfilePage(props) {
   const [user, setUser] = useState();
   //const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState("");
-  
 
   let navigate = useNavigate();
   let params = useParams();
@@ -28,8 +27,6 @@ export default function ProfilePage(props) {
   //   if (!string) return "";
   //   return string.charAt(0).toUpperCase() + string.slice(1);
   // }
-
-  
 
   useEffect(() => {
     const getUser = async () => {
@@ -77,20 +74,32 @@ export default function ProfilePage(props) {
                 </Figure>
               </Col>
               <Col xs="auto">
-                <Card.Text className="mb-3">
-                  {/* {user.firstName} {user.lastName} */}
-                </Card.Text>
                 <Card.Text className="mb-3">{user && user.username}</Card.Text>
                 <Card.Text className="mb-3">{user && user.email}</Card.Text>
                 <Card.Text className="mb-3">{user && user.zipcode}</Card.Text>
+              </Col>
+            </Row>
+            <Row className="justify-content-center align-items-center mt-3">
+              <Col xs={12} sm={4} md={3} lg={2}>
+                <Figure
+                  className="bg-border-color overflow-hidden my-auto ml-2 p-1"
+                  style={{ height: "100px", width: "100px" }}
+                >
+                  <Figure.Image
+                    src={user && user.dog.images && user.dog.images[0]}
+                    style={{
+                      borderRadius: "0%",
+                      height: "100%",
+                      width: "auto",
+                      objectFit: "cover",
+                    }}
+                  />
+                </Figure>
+              </Col>
+              <Col>
                 <Card.Text className="mb-3">{user && user.dog.name}</Card.Text>
                 <Card.Text className="mb-3">{user && user.dog.breed}</Card.Text>
                 <Card.Text className="mb-3">{user && user.dog.size}</Card.Text>
-                <Card.Text className="mb-3">
-                  {/* {user.city}, {user.state} */}
-                </Card.Text>
-                
-
               </Col>
             </Row>
           </Card.Body>
@@ -114,8 +123,6 @@ export default function ProfilePage(props) {
           )}
         </Card>
       </Container>
-
-      
     </>
   );
 }

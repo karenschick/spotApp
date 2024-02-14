@@ -13,6 +13,7 @@ import {
 } from "react-bootstrap";
 //import { useApiFetch } from "../../util/api";
 import { useProvideAuth } from "../../hooks/useAuth";
+import UploadFile from "../UploadFile/UploadFile";
 import { useRequireAuth } from "../../hooks/useRequireAuth";
 //import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 //import AvatarPicker from "../AvatarPicker/AvatarPicker";
@@ -26,7 +27,7 @@ const EditProfile = (props) => {
 
   const [user, setUser] = useState();
   //const [loading, setLoading] = useState(true);
-  const [validated, setValidated] = useState(false);
+
   const [showModal, setShowModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState({
@@ -36,14 +37,24 @@ const EditProfile = (props) => {
     //firstName: "",
     //lastName: "",
     email: "",
+    zipcode: "",
+    dogName: "",
+    dogBreed: "",
+    dogSize: "",
     //city: "",
     //state: "",
     isSubmitting: false,
     errorMessage: null,
   });
+  const [validated, setValidated] = useState(false);
   const [profileImage, setProfileImage] = useState("");
   const [passwordChanged, setPasswordChanged] = useState(false);
+  //const [showModal, setShowModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   //const [avatarChanged, setAvatarChanged] = useState(false);
+
+  let navigate = useNavigate();
+  let params = useParams();
 
   useEffect(() => {
     if (user) {
@@ -55,6 +66,10 @@ const EditProfile = (props) => {
         // city: user.city,
         // state: user.state,
         zipcode: user.zipcode,
+        dogName: user.dog.name,
+        dogBreed: user.dog.breed,
+        dogSize: user.dog.size,
+        dogImages: user.dog.images || [],
       }));
     }
   }, [user]);
@@ -112,9 +127,6 @@ const EditProfile = (props) => {
   //   "WY",
   // ];
 
-  let navigate = useNavigate();
-  let params = useParams();
-
   const {
     state: { isAuthenticated },
   } = useRequireAuth();
@@ -126,14 +138,21 @@ const EditProfile = (props) => {
       try {
         const userResponse = await api.get(`/users/${params.uname}`);
         setUser(userResponse.data);
-        setProfileImage(userResponse.data.profile_image);
-        //setLoading(false);
+
+        setData({
+          ...data,
+          email: userResponse.data.email,
+          zipcode: userResponse.data.zipcode,
+          dogName: userResponse.data.dog.name,
+          dogBreed: userResponse.data.dog.breed,
+          dogSize: userResponse.data.dog.size,
+        });
       } catch (err) {
         console.error(err.message);
       }
     };
-    isAuthenticated && getUser();
-  }, [params.uname, isAuthenticated]);
+    getUser();
+  }, [params.uname]);
 
   const handleInputChange = (event) => {
     setData({
@@ -147,6 +166,27 @@ const EditProfile = (props) => {
     ) {
       setPasswordChanged(true);
     }
+  };
+
+  const handleDogNameChange = (event) => {
+    setData({
+      ...data,
+      dogName: event.target.value,
+    });
+  };
+
+  const handleDogBreedChange = (event) => {
+    setData({
+      ...data,
+      dogBreed: event.target.value,
+    });
+  };
+
+  const handleDogSizeChange = (event) => {
+    setData({
+      ...data,
+      dogSize: event.target.value,
+    });
   };
 
   const handleUpdatePassword = async (event) => {
@@ -234,8 +274,33 @@ const EditProfile = (props) => {
   //     toast.error(`Error updating avatar: ${error.message}`);
   //   }
   // };
+  const addDog = () => {
+    setUserProfile({
+      ...userProfile,
+      dog: [...userProfile.dog, { name: "", breed: "", size: "" }],
+    });
+  };
+  const deleteDog = (index) => {
+    const updateDog = userProfile.dog.filter((_, i) => i !== index);
+    setUserProfile({
+      ...userProfile,
+      dog: updateDog,
+    });
+  };
 
   const handleSubmitAll = async () => {
+    const updatedUser = {
+      ...user,
+      email: data.email,
+      zipcode: data.zipcode,
+      dog: {
+        ...user.dog,
+        name: data.dogName,
+        breed: data.dogBreed,
+        size: data.dogSize,
+      },
+    };
+
     if (passwordChanged) {
       try {
         await handleUpdatePassword();
@@ -255,7 +320,7 @@ const EditProfile = (props) => {
     // }
 
     try {
-      await api.put(`/users/${params.uname}`, data);
+      await api.put(`/users/${params.uname}`, updatedUser);
       toast.success("Profile updated successfully");
       // If username is part of userDetails and it's changed, handle it appropriately
     } catch (error) {
@@ -272,6 +337,32 @@ const EditProfile = (props) => {
   // if (loading) {
   //   return <LoadingSpinner full />;
   // }
+
+  const handleShowUploadModal = () => {
+    setShowUploadModal(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+  };
+  const handleUpload = async (path) => {
+    try {
+      const updatedUserData = { ...user };
+      updatedUserData.dog.images = [...updatedUserData.dog.images, path];
+
+      await api.put(`/users/${params.uname}/dog/images`, {
+        imgUrls: updatedUserData.dog.images,
+      });
+      setData({
+        ...data,
+        dogImages: updatedUserData.dog.images,
+      });
+      handleCloseUploadModal();
+    } catch (err) {
+      console.error("Upload failed:", err);
+    }
+  };
+
   return (
     <>
       <Container fluid className="p-3" style={{ maxWidth: "500px" }}>
@@ -313,12 +404,14 @@ const EditProfile = (props) => {
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
               </Form.Group>
-              <Form.Group controlId="email">
+              <Form.Group controlId="zipcode">
                 <Form.Label>Zip Code</Form.Label>
                 <Form.Control
                   type="text"
                   value={data.zipcode}
-                  onChange={(e) => setData({ ...data, zipcode: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, zipcode: e.target.value })
+                  }
                 />
               </Form.Group>
               {/* <Form.Group controlId="city">
@@ -415,6 +508,40 @@ const EditProfile = (props) => {
               </Form>
             </div>
           </Card> */}
+          <Card className="mt-3 p-3">
+            <Form>
+              <Form.Group controlId="dogName">
+                <Form.Label>Dog's Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={data.dogName}
+                  onChange={handleDogNameChange}
+                />
+              </Form.Group>
+              <Form.Group controlId="dogBreed">
+                <Form.Label>Dog's Breed</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={data.dogBreed}
+                  onChange={handleDogBreedChange}
+                />
+              </Form.Group>
+              <Form.Group controlId="dogSize">
+                <Form.Label>Dog's Size</Form.Label>
+                <Form.Control
+                  as="select"
+                  name="size"
+                  value={data.dogSize}
+                  onChange={handleDogSizeChange}
+                >
+                  <option value="">Select Size</option>
+                  <option value="small">Small (22 lbs or less)</option>
+                  <option value="medium">Medium (23 lbs - 57 lbs)</option>
+                  <option value="large">Large (58 lbs or more)</option>
+                </Form.Control>
+              </Form.Group>
+            </Form>
+          </Card>
         </Container>
         <div className="text-center m-3">
           <Button
@@ -426,6 +553,18 @@ const EditProfile = (props) => {
           </Button>
         </div>
       </Container>
+      <Button onClick={handleShowUploadModal}>Upload Doggo Photo</Button>
+      <Modal show={showUploadModal} onHide={handleCloseUploadModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Upload Doggo Photo</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <UploadFile
+            handleClose={handleCloseUploadModal}
+            onUpload={handleUpload}
+          />
+        </Modal.Body>
+      </Modal>
     </>
   );
 };
