@@ -41,6 +41,8 @@ const EditProfile = (props) => {
     dogName: "",
     dogBreed: "",
     dogSize: "",
+    dogPhoto: "",
+    dogPhotoChanged: false,
     //city: "",
     //state: "",
     isSubmitting: false,
@@ -345,23 +347,33 @@ const EditProfile = (props) => {
   const handleCloseUploadModal = () => {
     setShowUploadModal(false);
   };
+
   const handleUpload = async (path) => {
     try {
       const updatedUserData = { ...user };
-      updatedUserData.dog.images = [...updatedUserData.dog.images, path];
-
+      updatedUserData.dog.images = [path]; // Replace the existing images array with a new array containing only the new image URL
+    
       await api.put(`/users/${params.uname}/dog/images`, {
         imgUrls: updatedUserData.dog.images,
       });
+      
+      // Update the user state with the new photo URL
+      setUser(updatedUserData);
+      
+      // Update the data state with the new photo URL
       setData({
         ...data,
-        dogImages: updatedUserData.dog.images,
+        dogPhoto: path,
+        dogPhotoChanged: true,
       });
+  
       handleCloseUploadModal();
     } catch (err) {
       console.error("Upload failed:", err);
     }
   };
+  
+  
 
   return (
     <>
@@ -404,7 +416,7 @@ const EditProfile = (props) => {
                   onChange={(e) => setData({ ...data, email: e.target.value })}
                 />
               </Form.Group>
-              <Form.Group controlId="zipcode">
+              <Form.Group className="mt-3" controlId="zipcode">
                 <Form.Label>Zip Code</Form.Label>
                 <Form.Control
                   type="text"
@@ -445,7 +457,7 @@ const EditProfile = (props) => {
               validated={validated}
               onSubmit={handleUpdatePassword}
             >
-              <Form.Group>
+              <Form.Group >
                 <Form.Label htmlFor="password">Current Password</Form.Label>
                 <Form.Control
                   type="password"
@@ -518,7 +530,7 @@ const EditProfile = (props) => {
                   onChange={handleDogNameChange}
                 />
               </Form.Group>
-              <Form.Group controlId="dogBreed">
+              <Form.Group className="mt-3"controlId="dogBreed">
                 <Form.Label>Dog's Breed</Form.Label>
                 <Form.Control
                   type="text"
@@ -526,7 +538,7 @@ const EditProfile = (props) => {
                   onChange={handleDogBreedChange}
                 />
               </Form.Group>
-              <Form.Group controlId="dogSize">
+              <Form.Group className="mt-3"controlId="dogSize">
                 <Form.Label>Dog's Size</Form.Label>
                 <Form.Control
                   as="select"
@@ -541,6 +553,14 @@ const EditProfile = (props) => {
                 </Form.Control>
               </Form.Group>
             </Form>
+            <Form.Label className="mt-3">Dog's Photo</Form.Label>
+            <Row className="justify-content-center">
+      <Col xs="auto">
+        <Button className="m-3" onClick={handleShowUploadModal}>
+          Upload Photo
+        </Button>
+      </Col>
+    </Row>
           </Card>
         </Container>
         <div className="text-center m-3">
@@ -553,10 +573,10 @@ const EditProfile = (props) => {
           </Button>
         </div>
       </Container>
-      <Button onClick={handleShowUploadModal}>Upload Doggo Photo</Button>
+      
       <Modal show={showUploadModal} onHide={handleCloseUploadModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Upload Doggo Photo</Modal.Title>
+          <Modal.Title>Upload Dog Photo</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <UploadFile

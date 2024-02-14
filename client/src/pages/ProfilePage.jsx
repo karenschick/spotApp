@@ -86,6 +86,7 @@ export default function ProfilePage(props) {
                   style={{ height: "100px", width: "100px" }}
                 >
                   <Figure.Image
+                  
                     src={user && user.dog.images && user.dog.images[0]}
                     style={{
                       borderRadius: "0%",
@@ -96,7 +97,7 @@ export default function ProfilePage(props) {
                   />
                 </Figure>
               </Col>
-              <Col>
+              <Col xs="auto">
                 <Card.Text className="mb-3">{user && user.dog.name}</Card.Text>
                 <Card.Text className="mb-3">{user && user.dog.breed}</Card.Text>
                 <Card.Text className="mb-3">{user && user.dog.size}</Card.Text>

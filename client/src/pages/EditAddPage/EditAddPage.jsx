@@ -62,50 +62,9 @@ const EditAddPage = () => {
 
   return (
     <>
-      <Button
-        variant="primary"
-        onClick={() => {
-          navigate(`/profile/u/${user.username}`);
-        }}
-        style={{ border: "none", color: "black" }}
-        className="mt-3 mb-3"
-      >
-        Go Back
-      </Button>
+     
 
-      <Container>
-        <Card
-          bg="header"
-          className="text-center justify-content-center align-items-center mt-3"
-          // style={{width:"50%"}}
-        >
-          <Card.Body>
-            <Row className="align-items-center">
-              <Col xs="auto">
-                <Figure
-                  className="bg-border-color overflow-hidden my-auto ml-2 p-1"
-                  style={{ height: "100px", width: "100px" }}
-                >
-                  {user && (
-                    <Figure.Image
-                      src={user.profile_image}
-                      style={{
-                        borderRadius: "0%",
-                        height: "100%",
-                        width: "auto",
-                        objectFit: "cover",
-                      }}
-                    />
-                  )}
-                </Figure>
-              </Col>
-              <Col xs="auto ">
-                <h2>{capitalizeFirstLetter(state.user?.username)}</h2>
-              </Col>
-            </Row>
-          </Card.Body>
-        </Card>
-      </Container>
+      
 
       <EditProfile />
     </>

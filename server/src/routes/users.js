@@ -140,18 +140,27 @@ router.put("/:username/avatar", requireAuth, async (req, res) => {
 
 //PUT /users/:username/dog/images - update dog images
 router.put("/:username/dog/images", requireAuth, async (req, res) => {
-  const { username } = req.params;
-  const { imgUrls } = req.body;
+  try {
+    const { username } = req.params;
+    const { imgUrls } = req.body;
 
-  const user = await User.findOneAndUpdate(
-    { username },
-    { $addToSet: { "dog.images": { $each: imgUrls } } },
-    { new: true }
-  );
-  if (!user) {
-    return res.status(404).json({ error: "user not found" });
+    if (req.user.username.toLowerCase() !== username.toLowerCase()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user.dog.images = imgUrls;
+
+    await user.save();
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-  res.json(user);
 });
 
 export default router;
