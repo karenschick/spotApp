@@ -1,68 +1,40 @@
 import React, { useState, useEffect } from "react";
-import api from "../../utils/api.utils";
-import "bootstrap/dist/css/bootstrap.min.css";
-import EditProfile from "../components/EditProfile/EditProfile";
-import { useNavigate, useParams } from "react-router-dom";
+import { Container, Card, Button, Figure, Row, Col } from "react-bootstrap";
+//import { useApiFetch } from "../util/api";
+
 import { useProvideAuth } from "../hooks/useAuth";
 import { useRequireAuth } from "../hooks/useRequireAuth";
-import { Container, Card, Button, Modal } from "react-bootstrap";
-import Logo from "/logo.png";
-import { API_URL, API_TARGET } from "../../constants";
-import UploadFile from "../components/UploadFile/UploadFile";
+//import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
+//import Header from "../components/Header/Header";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../../utils/api.utils";
+//import api from "../util/api";
+//import "../custom.scss";
 
-function ProfilePage() {
+export default function ProfilePage(props) {
   const { state } = useProvideAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [cardcontent, setCardContent] = useState("");
-  const [userData, setuserData] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [user, setUser] = useState();
+  //const [loading, setLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState("");
+
+  let navigate = useNavigate();
   let params = useParams();
-  console.log(params);
   const {
-    state: { user, isAuthenticated },
+    state: { isAuthenticated },
   } = useRequireAuth();
 
-  const handleEditProfile = () => {
-    setIsEditing(!isEditing);
-    setShowModal(!showModal);
-  };
-
-  const handleSaveChanges = (updatedUserData) => {
-    setuserData(updatedUserData);
-    // setCardContent("Update card content");
-    setIsEditing(false);
-    setShowModal(false);
-  };
-
-  const handleShowUploadModal = () => {
-    setShowUploadModal(true);
-  };
-
-  const handleCloseUploadModal = () => {
-    setShowUploadModal(false);
-  };
-
-  const handleUpload = async (path) => {
-    try {
-      const updatedUserData = { ...userData };
-      updatedUserData.dog.images = [...updatedUserData.dog.images, path];
-
-      await api.put(`/users/${params.uname}/dog/images`, {
-        imgUrls: updatedUserData.dog.images,
-      });
-      setuserData(updatedUserData);
-      handleCloseUploadModal();
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
-  };
+  // function capitalizeFirstLetter(string) {
+  //   if (!string) return "";
+  //   return string.charAt(0).toUpperCase() + string.slice(1);
+  // }
 
   useEffect(() => {
     const getUser = async () => {
       try {
         const userResponse = await api.get(`/users/${params.uname}`);
-        setuserData(userResponse.data);
+        setUser(userResponse.data);
+        setProfileImage(userResponse.data.profile_image);
+        //setLoading(false);
       } catch (err) {
         console.error(err.message);
       }
@@ -70,132 +42,61 @@ function ProfilePage() {
     isAuthenticated && getUser();
   }, [params.uname, isAuthenticated]);
 
+  // if (!isAuthenticated) {
+  //   return <LoadingSpinner full />;
+  // }
+
+  // if (loading) {
+  //   return <LoadingSpinner full />;
+  // }
+
   return (
     <>
-      <Container className="text-center">
-        <Card>
-          <Card.Body>
-            <h1 className="mb-5">HELP ME!!!!</h1>
-            <Card.Title>Hello, {state.user?.username}!</Card.Title>
-            <div className="row">
-              <div className="col-md-4 mb-4">
-                <img
-                  src={userData ? userData.profile_image : Logo}
-                  alt="Profile Picture"
-                  className="img-fluid rounded-circle"
-                  style={{
-                    marginBottom: "10px",
-                    height: "250px",
-                    width: "200px",
-                  }}
-                />
-              </div>
-              <div className="col-md-8">
-                <Card>
-                  <Card.Body>
-                    <Card.Title>My Info</Card.Title>
-                    {userData && userData.zipcode && (
-                      <Card.Text>
-                        {/* <span style={{ display: "block" }}>
-                          Name: {userData.name}
-                        </span> */}
-                        <span style={{ fontWeight: "bold" }}>
-                          {userData.username}
-                        </span>
-                        <span style={{ display: "block" }}>
-                          Zip Code: {userData.zipcode}
-                        </span>
-                      </Card.Text>
-                    )}
-                  </Card.Body>
-                </Card>
-                <Card className="mt-3">
-                  <Card.Body>
-                    <div>
-                      {userData?.dog?.images && (
-                        <img
-                          src={userData.dog.images}
-                          alt="Profile Picture of Dog"
-                          className="img-fluid rounded-circle"
-                          style={{
-                            marginBottom: "10px",
-                            height: "250px",
-                            width: "200px",
-                          }}
-                        />
-                      )}
-                    </div>
-                    <Card.Title>Doggo Info</Card.Title>
-                    {userData?.dog && (
-                      <>
-                        <Card.Text>
-                          <span style={{ display: "block" }}>
-                            Dog Name: {userData.dog.name}
-                          </span>
-                          <span style={{ display: "block" }}>
-                            Breed: {userData.dog.breed}
-                          </span>
-                          <span style={{ display: "block" }}>
-                            Size: {userData.dog.size}
-                          </span>
-                        </Card.Text>
-                        {user?.username === params.uname && (
-                          <Button
-                            className="mt-3"
-                            onClick={handleShowUploadModal}
-                          >
-                            Upload Doggo Photo
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </Card.Body>
-                </Card>
-                {console.log(state.user, params.uname)}
-                {console.log(userData)}
-                {user?.username === params.uname && (
-                  // state.user.username === params.uname &&
-                  <>
-                    <Button className="mt-3" onClick={handleEditProfile}>
-                      {isEditing ? "Close Edit Profile" : "Edit Profile"}
-                    </Button>
-                  </>
-                )}
-                <Modal show={showModal} onHide={handleEditProfile} centered>
-                  <Modal.Header closeButton>
-                    <Modal.Title>Edit Profile</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    {isEditing && (
-                      <EditProfile
-                        userData={userData}
-                        onSubmit={handleSaveChanges}
-                      />
-                    )}
-                  </Modal.Body>
-                </Modal>
-                <Modal
-                  show={showUploadModal}
-                  onHide={handleCloseUploadModal}
-                  centered
-                >
-                  <Modal.Header closeButton>
-                    <Modal.Title>Upload Doggo Photo</Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <UploadFile
-                      handleClose={handleCloseUploadModal}
-                      onUpload={handleUpload}
-                    />
-                  </Modal.Body>
-                </Modal>
-              </div>
-            </div>
-          </Card.Body>
-        </Card>
+      <Container className="mt-3 " style={{ width: "30%" }}>
+                   
+            {user && (
+              <Card bg="header" className="text-center">
+                <Card.Body>
+                  <Row><Col>
+                  <Figure className="bg-border-color overflow-hidden my-auto ml-2 p-1" style={{ height: "100px", width: "100px" }}>
+                    <Figure.Image src={user.profile_image} style={{ borderRadius: "0%", height: "100%", width: "auto", objectFit: "cover" }} />
+                  </Figure></Col>
+                  <Col>
+                  <Card.Text className="mb-3">{user.username}</Card.Text>
+                  <Card.Text className="mb-3">{user.email}</Card.Text>
+                  <Card.Text className="mb-3">{user.zipcode}</Card.Text>
+                  </Col>
+                  </Row>
+                </Card.Body>
+              </Card>
+            )}
+          
+            {user && (
+              <Card className="mt-3" style={{ width: "50%" }}>
+                <Card.Body>
+                  <Figure className="bg-border-color overflow-hidden my-auto  p-1" style={{ height: "100px", width: "100px" }}>
+                    <Figure.Image src={user.dog.images && user.dog.images[0]} style={{ borderRadius: "0%", height: "100%", width: "auto", objectFit: "cover" }} />
+                  </Figure>
+                  <Card.Text className="mb-3">{user.dog.name}</Card.Text>
+                  <Card.Text className="mb-3">{user.dog.breed}</Card.Text>
+                  <Card.Text className="mb-3">{user.dog.size}</Card.Text>
+                </Card.Body>
+              </Card>
+            )}
+          
+        {state.user && state.user.username === params.uname && (
+          <div className="mt-3">
+            <Button
+              variant="primary"
+              className="d-inline-block"
+              style={{ border: "none", color: "white", display: "inline-block" }}
+              onClick={() => navigate(`/profile/u/${params.uname}/edit`)}
+            >
+              Edit Profile
+            </Button>
+          </div>
+        )}
       </Container>
     </>
   );
 }
-
-export default ProfilePage;
